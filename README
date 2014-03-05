@@ -1,0 +1,94 @@
+== Introduction ==
+
+This plugin allows users to login to piwik using a CAS central login service.
+
+
+== User Provisioning Rationale ==
+
+CASLogin currently authenticates users against the CAS service, but then
+authorizes them to piwik according to the user configuration tables inside
+piwik itself.
+
+To make this work, first you need to make sure that the user that logs in
+also exists in piwik user tables and has some rights to view or edit sites.
+
+The superuser login value in piwik itself should also correspond to a proper
+user in CAS.
+
+So a way to make this work in *new* piwik installations is:
+
+ * In main piwik configuration, set the "login" in [superuser] section to
+   correspond to an actual CAS user.
+ * Enable the CASLogin plugin (see "Installation" below).
+ * Log in as the superuser. Go to Settings -> Users. Add a username (just
+   the actual username is needed, other data can be left empty). And for that
+   username, add some rights.
+
+A further authorization and auto-provisioning mechanism can be written based
+on specific SAML attributes or any other data. See "Further Customization,
+Hacking" below.
+
+
+== Installation ==
+
+ * Disable the "Login" plugin in administration panel.
+ * Enable the "CASLogin" plugin.
+ * In your main config/config.ini.php piwik configuration file, add a section that reads like this:
+
+{{{
+[caslogin]
+protocol = SAML_VERSION_1_1
+host = login.example.org
+port = 443
+}}}
+
+Option "protocol" is one of CAS_VERSION_1_0, CAS_VERSION_2_0 or SAML_VERSION_1_1 .
+
+
+== Additional Options ==
+
+By default, only the user defined in piwik configuration (config/config.ini.php) in
+the [superuser] section is regarded as a superuser / root administrator.
+
+However, with the CAS Login scheme, you might need to add additional accounts as
+superusers, each one of them logging in as normal with their own password.
+
+If you'd like to do that, add these accounts in section [caslogin] as follows:
+
+{{{
+additionalsuperusers[] = uid1
+additionalsuperusers[] = uid2
+}}}
+
+
+== Further Customization, Hacking ==
+
+If you want to grab some additional attributes, e.g. SAML, from your login
+server, then you can edit the file Auth.php. Search for "Additional
+Attributes", that's where they can be added to the session and made available
+to piwik.
+
+If you want a user to be added automatically to the piwik users database, edit
+Auth.php and search for "User Autocreate". This is the place where you can
+enable adding to the database and probably add some default ACLs later,
+depending on specific SAML attributes or anything else you use in your CAS
+solution. The superuser can add rights by hand, or you can choose to add
+them at this step using the piwik API.
+
+
+== TODO ==
+
+ * Credit the authors of the plugins CASLogin was based on
+ * Remove some duplicate functions
+ * Allow more configurable provisioning
+ * Make default login page somewhat more elegant
+
+
+== Author ==
+
+Alexandros Vellis
+National & Kapodistrian University of Athens
+Network Operations Centre
+avel at noc.uoa.gr
+http://www.noc.uoa.gr
+http://email.uoa.gr

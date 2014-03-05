@@ -1,0 +1,31 @@
+== Changelog ==
+0.6.3
+ * Bugfix: Added $this->setBasicVariablesView($view) to Controller.php to fix missing variables issue 
+   after upgrading to Piwik 1.6
+
+0.6:
+ * Security : Upgraded bundled phpCAS to version 1.1.3. See CVE-2010-3690, CVE-2010-3691, CVE-2010-3692
+ * Work with Piwik 1.1.1 (Fixed bug with enableFramedlogins)
+
+0.5:
+ * Bugfix: Rename Piwik:prefixTable() to Piwik_Common:prefixTable()
+
+0.4:
+ * Security: Upgraded bundled phpCAS to version 1.1.2. See CVE-2010-2795, CVE-2010-2796.
+ * Works with Piwik 0.8.
+
+0.3:
+ * Enabled single signout feature
+ * Upgraded to phpCAS library 1.1.0RC8
+ * Slightly modified phpCAS so as not to emit any PHP 5.3 warnings / deprecated messages.
+ * Compatible with Piwik 0.6.x.
+ * Allows use of CoreUpdater without signing in via CAS. (Fixed bug with endless loop redirects).
+
+
+0.2: Fixes and slight improvements
+ * Added the config option "additional root logins"
+ * Bugfix in login template
+ * Cleanups
+ * Coding style fixes
+
+0.1: Initial release
