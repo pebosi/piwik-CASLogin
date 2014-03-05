@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{% if isCustomLogo == false %}Piwik &rsaquo; {% endif %}{{ 'Login_LogIn'|translate }}</title>
+
+    <link rel="shortcut icon" href="plugins/CoreHome/images/favicon.ico"/>
+    {% autoescape false %}
+    {{ includeAssets({"type": "css"}) }}
+    {% endautoescape %}
+    <link rel="stylesheet" type="text/css" href="plugins/Login/stylesheets/login.css"/>
+    <meta name="description" content="{{ 'General_OpenSourceWebAnalytics'|translate }}"/>
+    {% if 'General_LayoutDirection'|translate =='rtl' %}
+        <link rel="stylesheet" type="text/css" href="plugins/Zeitgeist/stylesheets/rtl.css"/>
+    {% endif %}
+</head>
+<body id="loginPage">
+
+    {% include "_iframeBuster.twig" %}
+
+    <div id="logo">
+        {% if isCustomLogo == false %}
+            <a href="http://piwik.org" title="{{ linkTitle }}">
+        {% endif %}
+        {% if hasSVGLogo %}
+            <img src='{{ logoSVG }}' title="{{ linkTitle }}" alt="Piwik" class="ie-hide"/>
+            <!--[if lt IE 9]>
+        {% endif %}
+        <img src='{{ logoLarge }}' title="{{ linkTitle }}" alt="Piwik" />
+        {% if hasSVGLogo %}<![endif]-->{% endif %}
+
+        {% if isCustomLogo %}
+            {% set poweredByPiwik %}
+            <i><a href="http://piwik.org/" target="_blank">{{ linkTitle }}</a></i>
+            {% endset %}
+        {% endif %}
+
+        {% if isCustomLogo == false %}
+            </a>
+            <div class="description">
+                <a href="http://piwik.org" title="{{ linkTitle }}">{{ linkTitle }}</a>
+                <div class="arrow"></div>
+            </div>
+        {% endif %}
+    </div>
+
+    <section class="loginSection">
+
+<div id="loginbox">
+    <div id="loginlink" style="text-align:center;">
+		{{ 'Login_LogIn'|translate }}<br/><br/>
+                <a href="index.php?module=CASLogin&amp;action=redirectToCAS"><img src="{{ loginImage }}" alt="{{ 'Login_LogIn'|translate }}" style="max-width:50%;"></a>
+    </div>
+</div>
+
+
+            </div>
+    </section>
+</body>
+</html>

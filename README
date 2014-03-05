@@ -12,13 +12,10 @@ piwik itself.
 To make this work, first you need to make sure that the user that logs in
 also exists in piwik user tables and has some rights to view or edit sites.
 
-The superuser login value in piwik itself should also correspond to a proper
-user in CAS.
-
 So a way to make this work in *new* piwik installations is:
 
- * In main piwik configuration, set the "login" in [superuser] section to
-   correspond to an actual CAS user.
+ * Make sure a superuser exists with login corresponding to
+   an actual CAS user.
  * Enable the CASLogin plugin (see "Installation" below).
  * Log in as the superuser. Go to Settings -> Users. Add a username (just
    the actual username is needed, other data can be left empty). And for that
@@ -47,17 +44,10 @@ Option "protocol" is one of CAS_VERSION_1_0, CAS_VERSION_2_0 or SAML_VERSION_1_1
 
 == Additional Options ==
 
-By default, only the user defined in piwik configuration (config/config.ini.php) in
-the [superuser] section is regarded as a superuser / root administrator.
-
-However, with the CAS Login scheme, you might need to add additional accounts as
-superusers, each one of them logging in as normal with their own password.
-
-If you'd like to do that, add these accounts in section [caslogin] as follows:
+You can add a custom image on login page by setting it in [caslogin] section:
 
 {{{
-additionalsuperusers[] = uid1
-additionalsuperusers[] = uid2
+loginimage = 'url-of-image'
 }}}
 
 

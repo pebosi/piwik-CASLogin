@@ -6,15 +6,25 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html Gpl v3 or later
  * @version $Id:$
  * 
- * @package Piwik_CASLogin
+ * @category Piwik_Plugins
+ * @package CASLogin
  */
+
+namespace Piwik\Plugins\CASLogin;
+
+use Piwik\AuthResult;
+use Piwik\Common;
+use Piwik\Config;
+use Piwik\Db;
+use Piwik\Piwik;
+use Piwik\Plugins\UsersManager\API;
 
 /**
  * Class that implements an authentication mechanism via CAS (Central Authentication Services)
  *
  * @package Piwik_CASLogin
  */
-class Piwik_CASLogin_Auth implements Piwik_Auth
+class Auth implements \Piwik\Auth
 {
 	protected $login = null;
 	protected $token_auth = null;
@@ -24,16 +34,11 @@ class Piwik_CASLogin_Auth implements Piwik_Auth
 		return 'CASLogin';
 	}
 
+	public function initSession($login, $md5Password, $rememberMe) {}
+
 	public function authenticate()
 	{
 		$user = '';
-		$rootLogin = Zend_Registry::get('config')->superuser->login;
-
-		$additionalSuperUsers = array();
-		$oAdditionalSuperUsers = Zend_Registry::get('config')->caslogin->additionalsuperusers;
-		if(is_object($oAdditionalSuperUsers)) {
-			$additionalSuperUsers = $oAdditionalSuperUsers->toArray();
-		}
 
 		require_once PIWIK_INCLUDE_PATH . '/plugins/CASLogin/CAS/CAS.php';
 
@@ -47,25 +52,25 @@ class Piwik_CASLogin_Auth implements Piwik_Auth
 		// phpCAS::client() would fail.
 		global $PHPCAS_CLIENT;
 		if(!is_object($PHPCAS_CLIENT)) {
-			phpCAS::client(
-				constant( Zend_Registry::get('config')->caslogin->protocol ),
-				Zend_Registry::get('config')->caslogin->host,
-				(integer) Zend_Registry::get('config')->caslogin->port,
+			\phpCAS::client(
+				constant( Config::getInstance()->caslogin['protocol'] ),
+				Config::getInstance()->caslogin['host'],
+				(integer) Config::getInstance()->caslogin['port'],
                 '',
                 false
 			);
 		}
 
 		// no SSL validation for the CAS server
-		phpCAS::setNoCasServerValidation();
+		\phpCAS::setNoCasServerValidation();
 
 		// Handle single signout requests from CAS server
-		phpCAS::handleLogoutRequests();
+		\phpCAS::handleLogoutRequests();
 
 		// force CAS authentication only if it has been requested by action argument
 		$action = Piwik::getAction();
 		
-		$auth = phpCAS::checkAuthentication();
+		$auth = \phpCAS::checkAuthentication();
 		if(!$auth) {
 			if($action == 'redirectToCAS') {
 				phpCAS::forceAuthentication();
@@ -77,7 +82,7 @@ class Piwik_CASLogin_Auth implements Piwik_Auth
 			} elseif($action == 'redirectToCAS') {
 				phpCAS::forceAuthentication();
 			} else {
-				return new Piwik_Auth_Result( Piwik_Auth_Result::FAILURE, $user, NULL );
+				return new AuthResult( AuthResult::FAILURE, $user, NULL );
 			}
 		}
 
@@ -86,7 +91,7 @@ class Piwik_CASLogin_Auth implements Piwik_Auth
 		// dependable on a specific installation. CAS|piwik hackers can do some magic
 		// here with SAML attributes etc.
 		/*
-		foreach (phpCAS::getAttributes() as $key => $value) {
+		foreach (\phpCAS::getAttributes() as $key => $value) {
 			// syslog(LOG_DEBUG, "attribute: $key - ". print_r($value, true));
 		}
 		 */
@@ -96,31 +101,32 @@ class Piwik_CASLogin_Auth implements Piwik_Auth
 		}
 
 		if($user) {
-			if($user == $rootLogin || in_array($user, $additionalSuperUsers)) {
-				// Root / Admin login
-				return new Piwik_Auth_Result(Piwik_Auth_Result::SUCCESS_SUPERUSER_AUTH_CODE, $user, NULL );
-			}
-
-			$login = Zend_Registry::get('db')->fetchOne(
-					'SELECT login FROM '.Piwik_Common::prefixTable('user').' WHERE login = ?',
+			$db_user = Db::fetchRow('SELECT login, superuser_access FROM '.Common::prefixTable('user').' WHERE login = ?',
 					array($user)
 			);
-			if($login === false) {
+			if($db_user === null) {
 				// ***User Autocreate***
 				// We can either add the authenticated but not-yet-authorized user to the piwik users
 				// database, or ignore that.
 				// TODO: make this a config option
-				// $this->_populateDb($user);
+				$this->_populateDb($user);
 				$login = $user;
+				$superuser = false;
 			}
-
+			else {
+				$login = $db_user['login'];
+				$superuser = $db_user['superuser_access'];
+			}
 			if($login == $user)
 			{
-				return new Piwik_Auth_Result(Piwik_Auth_Result::SUCCESS, $login, NULL );
+				if ($superuser)
+					$code = AuthResult::SUCCESS_SUPERUSER_AUTH_CODE;
+				else $code = AuthResult::SUCCESS; 
+				return new AuthResult($code, $login, NULL );
 			}
 		}
 
-		return new Piwik_Auth_Result( Piwik_Auth_Result::FAILURE, $user, NULL );
+		return new AuthResult( AuthResult::FAILURE, $user, NULL );
 	}
 
 	public function setLogin($login)
@@ -142,9 +148,9 @@ class Piwik_CASLogin_Auth implements Piwik_Auth
 		$result = null;
 		$dummy = md5('abcd1234');
 		if ($this->_helper_userExists($user)) {
-			$this->_helper_updateUser($user, $dummy, '', 'alias');
+			$this->_helper_updateUser($user, $dummy, '', $user);
 		} else {
-			$this->_helper_addUser($user, $dummy, '', 'alias');
+			$this->_helper_addUser($user, $dummy, '', $user);
 		}
 	}
 
@@ -156,19 +162,17 @@ class Piwik_CASLogin_Auth implements Piwik_Auth
 	///// Warning - these methods are of course under Piwik's license.
 	private function _helper_userExists($name)
 	{
-		$count = Zend_Registry::get('db')->fetchOne("SELECT count(*)
-									FROM ".Piwik_Common::prefixTable("user"). "
+		$count = Db::fetchOne("SELECT count(*)
+									FROM ".Common::prefixTable("user"). "
 									WHERE login = ?", $name);
 		return $count > 0;
 	}
 
 	private function _helper_updateUser( $userLogin, $password = false, $email = false, $alias = false ) 
 	{
-		$token_auth = Piwik_UsersManager_API::getTokenAuth($userLogin, $password);
+		$token_auth = API::getTokenAuth($userLogin, $password);
 
-		$db = Zend_Registry::get('db');
-
-		$db->update( Piwik_Common::prefixTable("user"),
+		Db::get()->update( Common::prefixTable("user"),
 					array(
 						'password' => $password,
 						'alias' => $alias,
@@ -181,11 +185,9 @@ class Piwik_CASLogin_Auth implements Piwik_Auth
 
 	private function _helper_addUser( $userLogin, $password, $email, $alias = false )
 	{		
-		$token_auth = Piwik_UsersManager_API::getTokenAuth($userLogin, $password);
+		$token_auth = API::getTokenAuth($userLogin, $password);
 
-		$db = Zend_Registry::get('db');
-
-		$db->insert( Piwik_Common::prefixTable("user"), array(
+		Db::get()->insert( Common::prefixTable("user"), array(
 									'login' => $userLogin,
 									'password' => $password,
 									'alias' => $alias,

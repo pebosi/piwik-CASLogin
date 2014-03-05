@@ -6,16 +6,23 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.html Gpl v3 or later
  * @version $Id: Controller.php 943 2009-03-01 23:36:36Z matt $
  *
- * @package Piwik_CASLogin
+ * @category Piwik_Plugins
+ * @package CASLogin
  */
 
-require PIWIK_INCLUDE_PATH . '/plugins/UsersManager/API.php';
-require PIWIK_INCLUDE_PATH . '/core/View.php';
+namespace Piwik\Plugins\CASLogin;
+
+use Piwik\Config;
+use Piwik\Nonce;
+use Piwik\Piwik;
+use Piwik\Plugins\UsersManager\API;
+use Piwik\Url;
+use Piwik\View;
 
 /**
- * @package Piwik_CASLogin
+ * @package CASLogin
  */
-class Piwik_CASLogin_Controller extends Piwik_Controller
+class Controller extends \Piwik\Plugin\Controller
 {
 	public function index()
 	{
@@ -33,15 +40,15 @@ class Piwik_CASLogin_Controller extends Piwik_Controller
                 $this->setBasicVariablesView($view);
                 $view->linkTitle = Piwik::getRandomTitle();
 
-		$enableFramedLogins = Zend_Registry::get('config')->General->enable_framed_logins;
+		$enableFramedLogins = Config::getInstance()->General['enable_framed_pages'];
 		$view->enableFramedLogins = $enableFramedLogins;
 		if(!$enableFramedLogins)
 		{
 			$view->setXFrameOptions('sameorigin');
 		}
-		$view->forceSslLogin = Zend_Registry::get('config')->General->force_ssl_login;
+		$view->forceSslLogin = Config::getInstance()->General['force_ssl'];
 		// crsf token: don't trust the submitted value; generate/fetch it from session data
-		$view->nonce = Piwik_Nonce::getNonce('Piwik_Login.login');
+		$view->nonce = Nonce::getNonce('Piwik_Login.login');
 	}
     
 	/**
@@ -53,9 +60,11 @@ class Piwik_CASLogin_Controller extends Piwik_Controller
 	 */
 	function login($messageNoAccess = null)
 	{
-		$view = Piwik_View::factory('login');
+		$view = new View('@CASLogin/login');
 		$view->AccessErrorString = $messageNoAccess;
 		$view->linkTitle = Piwik::getRandomTitle();
+		$config = Config::getInstance()->caslogin;
+		$view->loginImage = isset($config['loginimage']) ? $config['loginimage'] : '';
 		$view->subTemplate = 'genericForm.tpl';
 		$this->configureView($view);
 		echo $view->render();
@@ -88,6 +97,6 @@ class Piwik_CASLogin_Controller extends Piwik_Controller
 	
 	public function logout()
 	{
-        phpCAS::logoutWithUrl(Piwik_Url::getCurrentUrlWithoutQueryString() );
+        \phpCAS::logoutWithUrl(Url::getCurrentUrlWithoutQueryString() );
 	}
 }

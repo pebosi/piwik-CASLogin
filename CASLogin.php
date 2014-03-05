@@ -9,9 +9,13 @@
  * @package Piwik_CASLogin
  */
 
+namespace Piwik\Plugins\CASLogin;
+
+use Piwik\Piwik;
+
 require PIWIK_INCLUDE_PATH . '/plugins/CASLogin/Auth.php';
 
-class Piwik_CASLogin extends Piwik_Plugin
+class CASLogin extends \Piwik\Plugin
 {
 	public function getInformation()
 	{
@@ -20,23 +24,23 @@ class Piwik_CASLogin extends Piwik_Plugin
 			'description' => 'CAS Login plugin. It uses JA-SIG Central Authentication Services to authenticate users and grant them access to piwik.',
 			'author' => 'OW',
                         'homepage' => 'http://dev.piwik.org/trac/ticket/598/',
-                        'version' => '0.6',
+                        'version' => '0.7',
 		);
 	}
 
 	function getListHooksRegistered()
 	{
 		$hooks = array(
-			'FrontController.initAuthenticationObject'	=> 'initAuthenticationObject',
+			'Request.initAuthenticationObject'	=> 'initAuthenticationObject',
 			);
 		return $hooks;
 	}
 
-	function initAuthenticationObject($notification)
+	function initAuthenticationObject()
 	{
         set_include_path(get_include_path() . PATH_SEPARATOR . PIWIK_INCLUDE_PATH . '/plugins/CASLogin/CAS');
         require_once('CAS/CAS.php');
-		$auth = new Piwik_CASLogin_Auth();
-		Zend_Registry::set('auth', $auth);
+		$auth = new Auth();
+		\Piwik\Registry::set('auth', $auth);
 	}
 }

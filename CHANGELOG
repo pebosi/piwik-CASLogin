@@ -1,4 +1,9 @@
 == Changelog ==
+0.7
+ * Compatible with Piwik 2.1
+ * Removed the "additional root logins" option (Piwik handles multiple superusers natively now)
+ * Added custom CAS login image
+
 0.6.3
  * Bugfix: Added $this->setBasicVariablesView($view) to Controller.php to fix missing variables issue 
    after upgrading to Piwik 1.6
