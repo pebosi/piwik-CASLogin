@@ -28,6 +28,7 @@ class Auth implements \Piwik\Auth
 {
 	protected $login = null;
 	protected $token_auth = null;
+	private static $phpcas_client_called = false;
 
 	public function getName()
 	{
@@ -50,8 +51,7 @@ class Auth implements \Piwik\Auth
 		// The first authenticate() is from the page, and the second is due to an API call.
 		// This checks if there was already a phpcas instance already initialized, otherwize
 		// phpCAS::client() would fail.
-		global $PHPCAS_CLIENT;
-		if(!is_object($PHPCAS_CLIENT)) {
+		if (!self::$phpcas_client_called) {
 			\phpCAS::client(
 				constant( Config::getInstance()->caslogin['protocol'] ),
 				Config::getInstance()->caslogin['host'],
@@ -59,6 +59,7 @@ class Auth implements \Piwik\Auth
                 '',
                 false
 			);
+			self::$phpcas_client_called = true;
 		}
 
 		// no SSL validation for the CAS server

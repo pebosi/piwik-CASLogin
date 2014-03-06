@@ -1,4 +1,7 @@
 == Changelog ==
+0.7.1
+ * Fixed error in Auth::authenticate causing phpCAS::client to be called twice.
+
 0.7
  * Compatible with Piwik 2.1
  * Removed the "additional root logins" option (Piwik handles multiple superusers natively now)

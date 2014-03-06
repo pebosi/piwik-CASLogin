@@ -24,7 +24,7 @@ class CASLogin extends \Piwik\Plugin
 			'description' => 'CAS Login plugin. It uses JA-SIG Central Authentication Services to authenticate users and grant them access to piwik.',
 			'author' => 'OW',
                         'homepage' => 'http://dev.piwik.org/trac/ticket/598/',
-                        'version' => '0.7',
+                        'version' => '0.7.1',
 		);
 	}
 
