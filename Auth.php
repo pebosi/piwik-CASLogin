@@ -134,11 +134,17 @@ class Auth implements \Piwik\Auth
 	{
 		$this->login = $login;
 	}
+    public function getLogin() {
+        return $this->login;
+    }
 	
     public function setTokenAuth($token_auth)
 	{
 		$this->token_auth = $token_auth;
 	}
+    public function getTokenAuthSecret() {
+        return $this->token_auth;
+    }
 
 	/**
 	 * This method is used to inject user into Piwik's tables.
@@ -197,6 +203,9 @@ class Auth implements \Piwik\Auth
 									)
 		);
 	}
-    
+
+    // Those methods are required by Piwik API.
+    public function setPassword($password) {}
+    public function setPasswordHash($passwordHash) {}
 }
 
