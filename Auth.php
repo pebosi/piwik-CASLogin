@@ -18,6 +18,7 @@ use Piwik\Config;
 use Piwik\Db;
 use Piwik\Piwik;
 use Piwik\Plugins\UsersManager\API;
+use Piwik\Session;
 
 /**
  * Class that implements an authentication mechanism via CAS (Central Authentication Services)
@@ -39,6 +40,9 @@ class Auth implements \Piwik\Auth
 
 	public function authenticate()
 	{
+		// Make sure Piwik session is started.
+		Session::start();
+
 		$user = '';
 
 		require_once PIWIK_INCLUDE_PATH . '/plugins/CASLogin/CAS/CAS.php';
