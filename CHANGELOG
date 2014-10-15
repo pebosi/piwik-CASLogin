@@ -1,4 +1,7 @@
 == Changelog ==
+0.7.2
+ * Piwik 2.8.0 compatibility: Added missing methods to Auth.
+
 0.7.1
  * Fixed error in Auth::authenticate causing phpCAS::client to be called twice.
 
