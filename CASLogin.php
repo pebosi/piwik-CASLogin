@@ -17,16 +17,6 @@ require PIWIK_INCLUDE_PATH . '/plugins/CASLogin/Auth.php';
 
 class CASLogin extends \Piwik\Plugin
 {
-	public function getInformation()
-	{
-		return array(
-			'name' => 'CAS Login',
-			'description' => 'CAS Login plugin. It uses JA-SIG Central Authentication Services to authenticate users and grant them access to piwik.',
-			'author' => 'OW',
-                        'homepage' => 'http://dev.piwik.org/trac/ticket/598/',
-                        'version' => '0.7.1',
-		);
-	}
 
 	function getListHooksRegistered()
 	{
